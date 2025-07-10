@@ -1,0 +1,64 @@
+type AllowedParticipantAdded @entity(immutable: true) {
+  id: Bytes!
+  potId: BigInt! # uint256
+  user: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PotAllowRequested @entity(immutable: true) {
+  id: Bytes!
+  potId: BigInt! # uint256
+  requestor: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PotCreated @entity(immutable: true) {
+  id: Bytes!
+  potId: BigInt! # uint256
+  creator: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PotEnded @entity(immutable: true) {
+  id: Bytes!
+  potId: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PotJoined @entity(immutable: true) {
+  id: Bytes!
+  potId: BigInt! # uint256
+  roundId: BigInt! # uint32
+  user: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type PotPayout @entity(immutable: true) {
+  id: Bytes!
+  potId: BigInt! # uint256
+  winner: Bytes! # address
+  amount: BigInt! # uint256
+  round: BigInt! # uint32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

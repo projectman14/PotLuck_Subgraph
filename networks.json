@@ -1,0 +1,8 @@
+{
+  "base-sepolia": {
+    "Potluck": {
+      "address": "0xc2cdcEec8ca258Ebb54654FB294ba63fF8038469",
+      "startBlock": 27358826
+    }
+  }
+}
