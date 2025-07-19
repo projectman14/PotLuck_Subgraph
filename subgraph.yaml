@@ -29,8 +29,8 @@ dataSources:
       eventHandlers:
         - event: AllowedParticipantAdded(indexed uint256,indexed address)
           handler: handleAllowedParticipantAdded
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
+        # - event: OwnershipTransferred(indexed address,indexed address)
+        #   handler: handleOwnershipTransferred
         - event: PotAllowRequested(indexed uint256,indexed address)
           handler: handlePotAllowRequested
         - event: PotCreated(indexed uint256,indexed address)

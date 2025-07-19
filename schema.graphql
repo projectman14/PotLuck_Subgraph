@@ -1,64 +1,153 @@
-type AllowedParticipantAdded @entity(immutable: true) {
-  id: Bytes!
-  potId: BigInt! # uint256
-  user: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+# Core Pot Entity - The main savings circle
+type Pot @entity(immutable: false) {
+  id: ID!                                    # Pot ID from contract
+  name: String!                              # Pot name (decoded from bytes)
+  creator: User!                             # Who created the pot (User entity reference)
+  tokenAddress: String!                      # ERC20 token address
+  entryAmount: BigInt!                       # Amount each participant must contribute
+  period: BigInt!                            # Duration between rounds in seconds
+  maxParticipants: BigInt!                   # Maximum allowed participants (0 = unlimited)
+  isPublic: Boolean!                         # Whether anyone can join
+  status: PotStatus!                         # Current status
+  currentRound: BigInt!                      # Current round number
+  currentDeadline: BigInt!                   # Current round deadline
+  currentBalance: BigInt!                    # Current pot balance
+  totalParticipants: BigInt!                 # Total unique participants across all rounds
+  createdAt: BigInt!                         # Creation timestamp
+  updatedAt: BigInt!                         # Last update timestamp
+  participants: [Participant!]! @derivedFrom(field: "pot")
+  rounds: [Round!]! @derivedFrom(field: "pot")
+  allowRequests: [AllowRequest!]! @derivedFrom(field: "pot")
+  allowedUsers: [AllowedUser!]! @derivedFrom(field: "pot")
+  totalContributions: BigInt!                # Total amount contributed across all rounds
+  totalPayouts: BigInt!                      # Total amount paid out
+  completedRounds: BigInt!                   # Number of completed rounds
+  activeParticipants: BigInt!                # Current active participants
 }
 
-type OwnershipTransferred @entity(immutable: true) {
-  id: Bytes!
-  previousOwner: Bytes! # address
-  newOwner: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+# Individual rounds within a pot
+type Round @entity(immutable: false) {
+  id: ID!                                    # pot_id + round_number
+  pot: Pot!                                  # Reference to parent pot
+  roundNumber: BigInt!                       # Round number
+  deadline: BigInt!                          # Round deadline
+  startTime: BigInt!                         # When round started
+  endTime: BigInt                            # When round ended (null if ongoing)
+  totalContributions: BigInt!                # Total contributed this round
+  participantCount: BigInt!                  # Number of participants this round
+  winner: User                               # Winner User entity (null if not yet determined)
+  prizeAmount: BigInt!                       # Amount won (0 if not yet determined)
+  rolloverAmount: BigInt!                    # Amount rolled to next round
+  contributions: [Contribution!]! @derivedFrom(field: "round")
+  payout: Payout @derivedFrom(field: "round")
+  status: RoundStatus!                       # Active, Completed, or Cancelled
 }
 
-type PotAllowRequested @entity(immutable: true) {
-  id: Bytes!
-  potId: BigInt! # uint256
-  requestor: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+# Individual contributions to rounds
+type Contribution @entity(immutable: false) {
+  id: ID!                                    # pot_id + round_number + user_address
+  pot: Pot!                                  # Reference to pot
+  round: Round!                              # Reference to round
+  user: User!                                # Who contributed
+  amount: BigInt!                            # Amount contributed
+  timestamp: BigInt!                         # When contributed
+  transactionHash: String!                   # Transaction hash
+  participantIndex: BigInt!                  # Order joined this round
 }
 
-type PotCreated @entity(immutable: true) {
-  id: Bytes!
-  potId: BigInt! # uint256
-  creator: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+# Payout events
+type Payout @entity(immutable: false) {
+  id: ID!                                    # pot_id + round_number
+  pot: Pot!                                  # Reference to pot
+  round: Round!                              # Reference to round
+  winner: User!                              # Winner User entity
+  amount: BigInt!                            # Amount paid out
+  timestamp: BigInt!                         # When paid out
+  transactionHash: String!                   # Transaction hash
 }
 
-type PotEnded @entity(immutable: true) {
-  id: Bytes!
-  potId: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+# User entities
+type User @entity(immutable: false) {
+  id: ID!                                    # User address
+  address: String!                           # Ethereum address
+  createdPots: [Pot!]! @derivedFrom(field: "creator")
+  participations: [Participant!]! @derivedFrom(field: "user")
+  contributions: [Contribution!]! @derivedFrom(field: "user")
+  payouts: [Payout!]! @derivedFrom(field: "winner")
+  allowRequests: [AllowRequest!]! @derivedFrom(field: "user")
+  allowedIn: [AllowedUser!]! @derivedFrom(field: "user")
+  totalContributed: BigInt!                  # Total amount contributed across all pots
+  totalWon: BigInt!                          # Total amount won
+  totalPots: BigInt!                         # Number of pots participated in
+  activePots: BigInt!                        # Number of currently active pots
+  firstActivity: BigInt!                     # First interaction timestamp
+  lastActivity: BigInt!                      # Last interaction timestamp
 }
 
-type PotJoined @entity(immutable: true) {
-  id: Bytes!
-  potId: BigInt! # uint256
-  roundId: BigInt! # uint32
-  user: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+# Participant relationship - tracks user participation in specific pots
+type Participant @entity(immutable: false) {
+  id: ID!                                    # pot_id + user_address
+  pot: Pot!                                  # Reference to pot
+  user: User!                                # Reference to user
+  joinedAt: BigInt!                          # When first joined
+  hasWon: Boolean!                           # Whether user has won in this pot
+  wonAt: BigInt                              # When they won (null if not won)
+  wonAmount: BigInt!                         # Amount won (0 if not won)
+  totalContributed: BigInt!                  # Total contributed to this pot
+  roundsParticipated: BigInt!                # Number of rounds participated
+  isActive: Boolean!                         # Currently participating
+  lastRoundParticipated: BigInt!             # Last round participated in
 }
 
-type PotPayout @entity(immutable: true) {
-  id: Bytes!
-  potId: BigInt! # uint256
-  winner: Bytes! # address
-  amount: BigInt! # uint256
-  round: BigInt! # uint32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+# Allow requests for private pots
+type AllowRequest @entity(immutable: false) {
+  id: ID!                                    # pot_id + user_address + timestamp
+  pot: Pot!                                  # Reference to pot
+  user: User!                                # Requesting user
+  requestedAt: BigInt!                       # When requested (fixed field name)
+  status: AllowRequestStatus!                # Status of request
+  resolvedAt: BigInt                         # When resolved (null if pending)
+  resolvedBy: User                           # Who resolved it
+}
+
+# Allowed users for private pots
+type AllowedUser @entity(immutable: false) {
+  id: ID!                                    # pot_id + user_address
+  pot: Pot!                                  # Reference to pot
+  user: User!                                # Allowed user
+  addedAt: BigInt!                           # When added
+  addedBy: User!                             # Who added them
+}
+
+# Platform-level statistics
+type PlatformStats @entity(immutable: false) {
+  id: ID!                                    # Always "platform"
+  totalPots: BigInt!                         # Total number of pots created
+  activePots: BigInt!                        # Currently active pots
+  completedPots: BigInt!                     # Completed pots
+  totalUsers: BigInt!                        # Total unique users
+  activeUsers: BigInt!                       # Users with active participations
+  totalVolume: BigInt!                       # Total volume across all pots
+  totalFeesPaid: BigInt!                     # Total platform fees collected
+  lastUpdated: BigInt!                       # Last update timestamp
+}
+
+# Enums
+enum PotStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum RoundStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum AllowRequestStatus {
+  PENDING
+  APPROVED
+  DENIED
+  CANCELLED
 }
