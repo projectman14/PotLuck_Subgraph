@@ -532,7 +532,8 @@ describe("Potluck Subgraph Tests", () => {
       totalWinnings = totalWinnings.plus(participantWinnings.get(CREATOR_ADDRESS.toHex())!)
       for (let i = 0; i < users.length; i++) {
         totalWinnings = totalWinnings.plus(participantWinnings.get(users[i].toHex())!)
-      }    })
+      }
+    })
   })
 
 
